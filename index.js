@@ -45,5 +45,13 @@ server.post('/participants', async(req, res) => {
         res.send("something is wrong")
     }
 });
+server.get('/participants', async(req, res)=>{
+    try {
+        const participants = await db.collection('participants').find().toArray();
+        res.send(participants)
+    } catch(err) {
+        res.send("something is wrong")
+    }
+})
 
 server.listen(5000)
