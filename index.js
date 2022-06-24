@@ -31,6 +31,7 @@ server.post('/participants', async(req, res) => {
     if(validate.error) {
         return res.sendStatus(422)
     }
+    
     const isAnotherName = await db.collection('participants').findOne({name});
     if(isAnotherName) {
         return res.sendStatus(409)
@@ -44,14 +45,5 @@ server.post('/participants', async(req, res) => {
         res.send("something is wrong")
     }
 });
-
-server.get('/participants', async(req, res)=>{
-    try {
-        const participants = await db.collection('participants').find().toArray();
-        res.send(participants)
-    } catch(err) {
-        res.send("something is wrong")
-    }
-})
 
 server.listen(5000)
