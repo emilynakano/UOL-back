@@ -112,18 +112,7 @@ server.post('/status', async(req, res) => {
         if(!userExist || !userAtualize) {
             return res.sendStatus(404)
         }
-        await db.collection('participants').updateOne({ name:userAtualize}, {$set: {lastStatus: Date.now()}});
-
-        const participants = await db.collection('participants').find().toArray();
-        setInterval(async()=> {
-            for(let i = 0; i < participants.length; i ++) {
-                if((Date.now() - participants[i].lastStatus) >= 10) {
-                   await db.collection('participants').deleteOne({lastStatus: participants[i].lastStatus})
-                   await db.collection('messages').insertOne({from: participants[i].name, to: 'Todos', text: 'sai da sala...', type: 'status', time: dayjs().format('HH:mm:ss')})
-                }
-            }
-        }, 15000)
-        
+        await db.collection('participants').updateOne({ name:userAtualize}, {$set: {lastStatus: Date.now()}});  
         
         res.sendStatus(201)
     } catch {
@@ -131,5 +120,14 @@ server.post('/status', async(req, res) => {
     }
     
 })
+setInterval(async () =>{
+    const participants = await db.collection('participants').find().toArray();
+        for(let i = 0; i < participants.length; i ++) {
+            if((Date.now() - participants[i].lastStatus) >= 10000) {
+                await db.collection('participants').deleteOne({lastStatus: participants[i].lastStatus})
+                await db.collection('messages').insertOne({from: participants[i].name, to: 'Todos', text: 'sai da sala...', type: 'status', time: dayjs().format('HH:mm:ss')})
+            }
+        }
+},15000);
 
 server.listen(5000)
