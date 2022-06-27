@@ -80,6 +80,31 @@ server.post('/messages', async(req, res)=> {
     }
     
 });
+server.get('/messages', async(req, res)=> {
+    const from = req.headers.user;
+    const limit = parseInt(req.query.limit);
+    
+    try{
+        const messages = await db.collection('messages').find().toArray();
+        const filterMessages = messages.filter(verification)
+
+        function verification (message) {
+            if(message.type !== "private_message" || message.from === from || message.to === from) {
+                return message
+            }
+        }
+        
+        filterMessages.reverse()
+        if(limit) {
+            filterMessages.length = limit;
+        }
+        filterMessages.reverse()
+
+        res.send(filterMessages);
+    }catch {
+        res.send("something is wrong")
+    }
+});
 
 
 server.listen(5000)
