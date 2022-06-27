@@ -112,7 +112,16 @@ server.post('/status', async(req, res) => {
         if(!userExist || !userAtualize) {
             return res.sendStatus(404)
         }
-        await db.collection('participants').insertOne({ name:userAtualize, lastStatus: Date.now()});
+        await db.collection('participants').updateOne({ name:userAtualize}, {$set: {lastStatus: Date.now()}});
+
+        const participants = await db.collection('participants').find().toArray();
+        
+        for(let i = 0; i < participants.length; i ++) {
+               if((Date.now() - participants[i].lastStatus) >= 10) {
+                  await db.collection('participants').deleteOne({lastStatus: participants[i].lastStatus})
+                  await db.collection('messages').insertOne({from: participants[i].name, to: 'Todos', text: 'sai da sala...', type: 'status', time: dayjs().format('HH:mm:ss')})
+               }
+        }
         
         res.sendStatus(201)
     } catch {
