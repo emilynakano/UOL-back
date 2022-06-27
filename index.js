@@ -105,6 +105,20 @@ server.get('/messages', async(req, res)=> {
         res.send("something is wrong")
     }
 });
-
+server.post('/status', async(req, res) => {
+    const userAtualize = req.headers.user;
+    try {
+        const userExist = await db.collection('participants').findOne({name: userAtualize});
+        if(!userExist || !userAtualize) {
+            return res.sendStatus(404)
+        }
+        await db.collection('participants').insertOne({ name:userAtualize, lastStatus: Date.now()});
+        
+        res.sendStatus(201)
+    } catch {
+        res.send("something is wrong")
+    }
+    
+})
 
 server.listen(5000)
