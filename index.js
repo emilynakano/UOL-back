@@ -24,6 +24,7 @@ const nameSchema = joi.object({
     name: joi.string().required()
 })
 
+
 server.post('/participants', async(req, res) => {
     const name = req.body.name;
 
@@ -52,6 +53,33 @@ server.get('/participants', async(req, res)=>{
     } catch(err) {
         res.send("something is wrong")
     }
-})
+});
+server.post('/messages', async(req, res)=> {
+    const {type, to, text} = req.body;
+    const from = req.headers.user;
+
+    try {
+        const participants = await db.collection('participants').find().toArray();
+        const nameParticipants = participants.map((part)=>{return part.name})
+        
+        const typeMessage = ["message", "private_message"]
+        const participantSchema = joi.object({
+            to: joi.string().required(),
+            text: joi.string().required(),
+            type: joi.valid(...typeMessage),
+            from: joi.valid(...nameParticipants)
+        })
+        const validate = participantSchema.validate({type, to, text, from})
+        if(validate.error) {
+            return res.sendStatus(422)
+        }
+        await db.collection('messages').insertOne({from, to, text, type, time: dayjs().format('HH:mm:ss')});
+        res.sendStatus(201)
+    } catch {
+        res.send("something is wrong")
+    }
+    
+});
+
 
 server.listen(5000)
